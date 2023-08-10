@@ -1,1 +1,1 @@
-web: gunicorn app/dynamfit2.wsgi 
+web: gunicorn app:app 
