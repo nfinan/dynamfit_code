@@ -17,7 +17,7 @@ import io
 import pandas as pd
 import numpy as np
 
-from helper import prony_linear_fit, compute_rspectum
+from .helper import prony_linear_fit, compute_rspectum
 
 # stylesheet with the .dbc class
 dbc_css = "https://cdn.jsdelivr.net/gh/AnnMarieW/dash-bootstrap-templates/dbc.min.css"
@@ -106,7 +106,25 @@ mytable = html.Div(
 
 uploadbutton = html.Div(
     [
-        dbc.Label("Upload Compatible Viscoelastic Data"),
+        # dbc.Label("Upload Compatible Viscoelastic Data"),
+        # dbc.Label("(accepted formats: '.csv', '.tsv')"),
+        dbc.Label([html.Div("Upload Compatible Viscoelastic Data"), 
+                #    html.Div("<i>accepted formats: '.csv', '.tsv'</i>")], 
+                #    style={
+                #         # 'marginLeft': 10, 'marginRight': 10, 'marginTop': 10, 'marginBottom': 10, 
+                #         # 'backgroundColor':'#F7FBFE',
+                #         'border': 'thin lightgrey dashed', 
+                #         # 'padding': '6px 0px 0px 8px',
+                #         },
+                #    ),
+                   html.Div(dcc.Markdown("*(accepted formats: '.csv', '.tsv')*", 
+                    style={
+                            'marginLeft': 0, 'marginRight': 0, 'marginTop': 0, 'marginBottom': -20, 
+                            # 'backgroundColor':'#F7FBFE',
+                            # 'border': 'thin lightgrey dashed', 
+                            'padding': '0px 0px 0px 0px',
+                            },
+                                         ))]),
         dcc.Upload(id='upload-data', children=dbc.Button('Upload File')),
     ],
 )
@@ -242,19 +260,30 @@ def update_upload_data(contents):
     if contents is not None:
         content_type, content_string = contents.split(',')
         decoded = base64.b64decode(content_string)
-        df = pd.read_csv(io.StringIO(decoded.decode('utf-8')), delimiter='\t')
+        df = pd.read_csv(io.StringIO(decoded.decode('utf-8')), header=None, sep = ",|\s+\t+|\t+")
         # print(df.shape)
         # if len(df.columns) != 3:
-        df.columns =['Frequency', 'E Storage', 'E Loss']
+        # df.columns =['Frequency', 'E Storage', 'E Loss']
         # print(df)
+        # err_dict = {
+        #     "True": {
+        #         "alert_message":"Upload Unsuccessful",
+        #         "alert_color": "warning",
+        #     },
+        #     "False": {
+        #         "alert_message":"Upload Successful!",
+        #         "alert_color": "success",
+        #     }
+        # }
+        # error = "False"
         is_open = True
-        if df is not None:
+        if (df is not None) and (len(df.columns) == 3):
             alert_message = "Upload Successful!"
             alert_color = "success"
+            df.columns =['Frequency', 'E Storage', 'E Loss']
         else:
             alert_message = "Upload Unsuccessful"
-            alert_color = "warning"
-
+            alert_color = "danger"
 
         return df.to_dict("records"), alert_message, alert_color, is_open
 
